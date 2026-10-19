@@ -32,7 +32,7 @@ describe('db:deploy — албан migrator', () => {
     await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
     const journal = (await import('../drizzle/meta/_journal.json')).default as { entries: unknown[] };
     expect(await applied()).toBe(journal.entries.length);
-  });
+  }, 60_000); // Бусад integration тестийн адил — зэрэгцээ ажиллахад PGlite удаан
 
   it('«Өдрийн тав» ба агуулгын хүснэгт, багана бий', async () => {
     const cols = await client.query<{ column_name: string }>(
