@@ -6,9 +6,9 @@
  * хүснэгтэд бүртгэж, зөвхөн ШИНИЙГ ажиллуулна. Гараар SQL хуулж
  * ажиллуулах шаардлагагүй — алгасах, давхар ажиллуулах эрсдэлгүй.
  *
- * ⚠ Neon-ий pooler (PgBouncer) дээр DDL найдваргүй тул шууд холболтыг
- *   (`DATABASE_URL_UNPOOLED` — Vercel–Neon интеграц автоматаар тавьдаг)
- *   түрүүлж ашиглана.
+ * ⚠ Pooler (PgBouncer, ж нь Neon) дээр DDL найдваргүй тул шууд холболт
+ *   `DATABASE_URL_UNPOOLED` байвал түүнийг түрүүлж ашиглана. Railway-д
+ *   pooler байхгүй — `DATABASE_URL` (DATABASE_PUBLIC_URL) хангалттай.
  * ⚠ Локал `npm run db:dev` өөрийн бүртгэлтэй — энэ тушаал түүнд хэрэггүй.
  */
 import path from 'node:path';

@@ -1,5 +1,6 @@
 /**
- * Neon PostgreSQL холболт — ap-northeast-1 (ADR-004), Drizzle ORM.
+ * PostgreSQL холболт — Railway (Сингапур, Vercel-ийн `sin1`-тэй нэг бүс), Drizzle ORM.
+ * Neon эсвэл өөр Postgres-т ч өөрчлөлтгүй ажиллана — зөвхөн DATABASE_URL.
  *
  * ⚠ Холболтыг ЗАЛХУУ (lazy) үүсгэнэ. Модуль ачаалагдах үед холбогдвол:
  *   - `next build`-ийн «Collecting page data» алхам унана
@@ -29,7 +30,9 @@ function connect(): PostgresJsDatabase {
     );
   }
 
-  // `max: 1` — Neon-ы pooler-тэй хамт ажиллахад тохиромжтой.
+  // `max: 1` — serverless instance бүр НЭГ холболт. Railway-д pooler байхгүй тул
+  //   олон instance зэрэг асахад Postgres-ийн холболтын хязгаар (100) дүүрэхээс
+  //   сэргийлнэ. `idle_timeout` — сул instance холболтоо 20 секундэд суллана.
   const sql =
     globalForDb.__nomadSql ?? postgres(url, { max: 1, idle_timeout: 20 });
 

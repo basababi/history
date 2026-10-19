@@ -78,7 +78,7 @@ cd apps/api && npx next start -p 3001          # http://localhost:3001
 
 ## Байршуулах
 
-Алхам алхмаар: **[docs/DEPLOY.md](DEPLOY.md)** (Vercel + Neon, migration, rollback).
+Алхам алхмаар: **[docs/DEPLOY.md](DEPLOY.md)** (Vercel — апп, Railway — Postgres; migration, rollback).
 Бодит утас дээрх шалгалт: **[docs/QA.md](QA.md)** (iPhone Safari, Messenger, Instagram).
 
 ## Агуулга нэмэх
