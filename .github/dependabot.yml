@@ -1,0 +1,37 @@
+# Хамаарлын шинэчлэл — долоо хоног бүр, бүлэглэн нэг PR.
+# Expo/React Native-ийг `npx expo install --fix`-ээр гараар шинэчилнэ:
+# тэдгээрийн хувилбарууд хоорондоо уялдаатай тул тусад нь өсгөвөл эвдэрнэ.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Ulaanbaatar
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native/*"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
+      dev-tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+      runtime:
+        dependency-type: production
+        update-types: [patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

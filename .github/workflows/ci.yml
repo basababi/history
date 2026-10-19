@@ -5,15 +5,24 @@ on:
     branches: [main]
   pull_request:
 
+# Нэг салбарт шинэ push ирэхэд хуучин ажиллагааг цуцална
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Хамаарал суулгах
@@ -22,9 +31,9 @@ jobs:
       - name: Migration шинэ эсэхийг шалгах
         run: |
           npm run db:migrate
-          if ! git diff --quiet packages/db/drizzle; then
+          if [ -n "$(git status --porcelain packages/db/drizzle)" ]; then
             echo "::error::Схем өөрчлөгдсөн ч migration үүсгээгүй байна."
-            git diff --stat packages/db/drizzle
+            git status --short packages/db/drizzle
             exit 1
           fi
 
@@ -37,15 +46,23 @@ jobs:
       - name: Тест (бодит Postgres — PGlite)
         run: npm run test
 
-      - name: Аюулгүй байдал — critical/high байж БОЛОХГҮЙ
-        run: npm audit --audit-level=high
+      # Critical-ыг хэзээ ч зөвшөөрөхгүй. Засваргүй high-ууд (Expo/Metro-ийн
+      # build хэрэгсэл) docs/SECURITY.md-д бүртгэлтэй, Dependabot долоо хоног
+      # бүр шалгана.
+      - name: Аюулгүй байдал — critical байж БОЛОХГҮЙ
+        run: npm audit --audit-level=critical
 
-      - name: API production build
+      - name: Production build (вэб экспорт + Next)
         run: npm run build
         env:
           SESSION_SECRET: ci-build-only
 
-      - name: Mobile bundle (Android + iOS)
+      - name: Агуулгын нөөц
+        run: npm run content:check --if-present
+
+      # Вэб бол одоогийн бүтээгдэхүүн, апп нь 2-р шат. Нийтлэг код натив
+      # bundle-ийг эвдээгүйг шалгана.
+      - name: Натив bundle (Android + iOS)
         working-directory: apps/mobile
         run: |
           npx expo export --platform android --output-dir /tmp/export-android

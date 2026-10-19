@@ -32,6 +32,7 @@ export type RootScreenProps<T extends keyof RootStackParamList> =
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- React Navigation-ий албан ёсны бичлэг
     interface RootParamList extends RootStackParamList {}
   }
 }
