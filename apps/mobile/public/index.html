@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="mn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>%WEB_TITLE%</title>
+    <meta name="description" content="Өдөр бүр 5 асуулт — Монголын түүх, домог, зүйр үг. Найзаа линкээр сорь, бүртгэл хэрэггүй." />
+    <meta name="theme-color" content="#080E18" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="application-name" content="Эртний Өв" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Эртний Өв" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Эртний Өв" />
+    <meta property="og:locale" content="mn_MN" />
+    <meta property="og:title" content="Эртний Өв · Өдрийн тав" />
+    <meta property="og:description" content="Өдөр бүр 5 асуулт — Монголын түүх, домог, зүйр үг. Найзаа сорь." />
+    <meta property="og:image" content="__PUBLIC_WEB_URL__/api/og/default" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- react-native-web-ийн root тохиргоо + бараан дэвсгэр (цагаан анивчихгүй) -->
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #080e18;
+        color: #f8f5ee;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+      /* JS ачаалагдах хүртэлх брэндийн дэлгэц — React эхлэхэд солигдоно */
+      .boot {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      .boot-mark {
+        animation: boot-pulse 1.6s ease-in-out infinite;
+      }
+      .boot-name {
+        color: #ddb058;
+        font-weight: 800;
+        letter-spacing: 0.32em;
+        font-size: 15px;
+      }
+      @keyframes boot-pulse {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(0.97);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-mark {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>
+      <p style="padding: 24px; font-family: system-ui, sans-serif">
+        Эртний Өв ажиллахын тулд хөтчийн JavaScript-ийг идэвхжүүлнэ үү.
+      </p>
+    </noscript>
+    <div id="root">
+      <div class="boot" aria-label="Ачаалж байна">
+        <svg class="boot-mark" width="72" height="72" viewBox="0 0 120 120" aria-hidden="true">
+          <g fill="none" stroke="#DDB058" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M40 30 H80 V50 H60 V70 H80 V90 H40 V70 H60 V50 H40 Z" />
+            <path d="M30 40 V80 M90 40 V80" />
+            <path d="M30 40 H50 M70 40 H90 M30 80 H50 M70 80 H90" />
+          </g>
+        </svg>
+        <div class="boot-name">ЭРТНИЙ ӨВ</div>
+      </div>
+    </div>
+  </body>
+</html>

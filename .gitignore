@@ -1,0 +1,36 @@
+node_modules/
+dist/
+.next/
+.expo/
+.turbo/
+*.tsbuildinfo
+coverage/
+
+# Нууц утга — .env.example л commit хийнэ
+.env
+.env.local
+
+# ⚠ packages/db/drizzle/ нь commit хийгдэнэ: migration бол схемийн
+# хувьслын цорын ганц эх сурвалж бөгөөд CI үүнээс хамаарна.
+packages/db/.pgdata/
+packages/db/.pgdata.corrupt-*/
+
+# Expo вэб экспорт — `npm run build:web`-ийн бүтээгдэхүүн
+apps/api/public/
+
+# Орчны хувилбарууд (жишээ файлаас бусад)
+.env.*
+!.env.example
+
+# Байршуулалт, лог, OS/IDE-ийн хог
+.vercel/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+
+# Python (tools/blender)
+__pycache__/
+*.pyc
+*.blend1

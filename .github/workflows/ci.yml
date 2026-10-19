@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Хамаарал суулгах
+        run: npm ci
+
+      - name: Migration шинэ эсэхийг шалгах
+        run: |
+          npm run db:migrate
+          if ! git diff --quiet packages/db/drizzle; then
+            echo "::error::Схем өөрчлөгдсөн ч migration үүсгээгүй байна."
+            git diff --stat packages/db/drizzle
+            exit 1
+          fi
+
+      - name: Төрлийн шалгалт
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Тест (бодит Postgres — PGlite)
+        run: npm run test
+
+      - name: Аюулгүй байдал — critical/high байж БОЛОХГҮЙ
+        run: npm audit --audit-level=high
+
+      - name: API production build
+        run: npm run build
+        env:
+          SESSION_SECRET: ci-build-only
+
+      - name: Mobile bundle (Android + iOS)
+        working-directory: apps/mobile
+        run: |
+          npx expo export --platform android --output-dir /tmp/export-android
+          npx expo export --platform ios --output-dir /tmp/export-ios

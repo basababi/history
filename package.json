@@ -1,0 +1,40 @@
+{
+  "name": "nomad-legacy-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "turbo run dev --filter=@nomad/api",
+    "dev:mobile": "turbo run start --filter=@nomad/mobile",
+    "build": "npm run build:web && npm run build --workspace=@nomad/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint \"packages/*/src/**/*.ts\" \"packages/*/tests/**/*.ts\" \"apps/api/app/**/*.{ts,tsx}\" \"apps/api/lib/**/*.{ts,tsx}\" \"apps/api/tests/**/*.ts\" \"apps/mobile/src/**/*.{ts,tsx}\" \"apps/mobile/App.tsx\" \"apps/mobile/tests/**/*.ts\"",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run migrate --workspace=@nomad/db",
+    "db:seed": "npm run seed --workspace=@nomad/db",
+    "verify": "npm run typecheck && npm run lint && npm run test",
+    "db:studio": "npm run studio --workspace=@nomad/db",
+    "db:dev": "npm run dev --workspace=@nomad/db",
+    "db:reset": "npm run reset --workspace=@nomad/db",
+    "dev:stop": "node scripts/dev-stop.mjs",
+    "dev:web": "turbo run web --filter=@nomad/mobile",
+    "build:web": "npm run export:web --workspace=@nomad/mobile"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.7",
+    "@electric-sql/pglite-socket": "^0.2.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "dotenv": "^17.4.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "turbo": "^2.0.6",
+    "typescript": "~6.0.3"
+  },
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=20"
+  }
+}

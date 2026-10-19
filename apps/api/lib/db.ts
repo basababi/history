@@ -1,0 +1,59 @@
+/**
+ * Neon PostgreSQL холболт — ap-northeast-1 (ADR-004), Drizzle ORM.
+ *
+ * ⚠ Холболтыг ЗАЛХУУ (lazy) үүсгэнэ. Модуль ачаалагдах үед холбогдвол:
+ *   - `next build`-ийн «Collecting page data» алхам унана
+ *   - env дутуу үед импортын үед л задарч, цэвэр алдаа буцаах боломжгүй болно
+ * Тиймээс эхний асуулга хийх үед л pool үүснэ.
+ */
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+/** Холболтын мөр байгаа эсэх — route дотор урьдчилж шалгаж болно */
+export function isDbConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL);
+}
+
+const globalForDb = globalThis as unknown as {
+  __nomadSql?: ReturnType<typeof postgres>;
+  __nomadDb?: PostgresJsDatabase;
+};
+
+function connect(): PostgresJsDatabase {
+  if (globalForDb.__nomadDb) return globalForDb.__nomadDb;
+
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      'DATABASE_URL тохируулагдаагүй байна. apps/api/.env файлаа шалгана уу.'
+    );
+  }
+
+  // `max: 1` — Neon-ы pooler-тэй хамт ажиллахад тохиромжтой.
+  const sql =
+    globalForDb.__nomadSql ?? postgres(url, { max: 1, idle_timeout: 20 });
+
+  const instance = drizzle(sql);
+
+  // ⚠ АЛДААНЫ ЗАСВАР (2026-10): өмнө нь зөвхөн production БИШ үед кэшилдэг
+  //   байсан тул production-д `db.*` хандалт БҮРТ шинэ холболтын pool үүсч
+  //   байв — асуулга бүрт шинэ TCP/TLS холболт, Neon-ы холболтын хязгаар
+  //   хурдан дүүрнэ. Одоо instance бүрд НЭГ pool (serverless instance
+  //   дахин ашиглагдахад ч хэвээр), dev-ийн hot reload-д ч мөн адил.
+  globalForDb.__nomadSql = sql;
+  globalForDb.__nomadDb = instance;
+
+  return instance;
+}
+
+/**
+ * `db` нь Proxy — эхний ашиглалт хүртэл холбогдохгүй.
+ * Дуудлагын хэлбэр өөрчлөгдөхгүй: `db.select()...` хэвээр.
+ */
+export const db = new Proxy({} as PostgresJsDatabase, {
+  get(_target, prop, receiver) {
+    const real = connect();
+    const value = Reflect.get(real, prop, receiver);
+    return typeof value === 'function' ? value.bind(real) : value;
+  },
+});

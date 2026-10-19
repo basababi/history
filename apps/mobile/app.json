@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Эртний Өв",
+    "slug": "nomad-legacy",
+    "scheme": "ertniiov",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#080E18",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "mn.nomadlegacy.app"
+    },
+    "android": {
+      "package": "mn.nomadlegacy.app",
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": []
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#080E18",
+          "resizeMode": "contain"
+        }
+      ],
+      "expo-font",
+      "expo-sharing",
+      "expo-asset"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Эртний Өв · Өдрийн тав",
+      "shortName": "Эртний Өв",
+      "lang": "mn"
+    }
+  }
+}
