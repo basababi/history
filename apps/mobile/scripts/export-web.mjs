@@ -9,7 +9,8 @@
  *
  * Орчны хувьсагч:
  *   PUBLIC_WEB_URL  — сайтын хаяг (https://ertniiov.mn). Нүүр хуудасны OG
- *                     зурагт абсолют хаяг хэрэгтэй. Байхгүй бол харьцангуй.
+ *                     зурагт абсолют хаяг хэрэгтэй. Байхгүй бол Vercel-ийн
+ *                     VERCEL_PROJECT_PRODUCTION_URL → VERCEL_URL.
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -39,7 +40,18 @@ if (!fs.existsSync(indexFile)) {
   process.exit(1);
 }
 
-const publicUrl = (process.env.PUBLIC_WEB_URL ?? '').replace(/\/$/, '');
+/**
+ * Сайтын абсолют хаяг. Vercel дээр тохируулаагүй бол төслийн production
+ * домэйн, эсвэл тухайн deploy-ийн хаяг (staging-д ч OG карт ажиллана).
+ */
+function resolvePublicUrl() {
+  if (process.env.PUBLIC_WEB_URL) return process.env.PUBLIC_WEB_URL;
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  return vercelHost ? `https://${vercelHost}` : '';
+}
+
+const publicUrl = resolvePublicUrl().replace(/\/$/, '');
+if (!publicUrl) console.warn('⚠ PUBLIC_WEB_URL байхгүй — нүүр хуудасны OG зураг харьцангуй хаягтай (Messenger харуулахгүй)');
 const html = fs.readFileSync(indexFile, 'utf8').replaceAll('__PUBLIC_WEB_URL__', publicUrl);
 fs.writeFileSync(indexFile, html);
 
