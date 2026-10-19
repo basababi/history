@@ -76,22 +76,10 @@ cd apps/api && npx next start -p 3001          # http://localhost:3001
 > ⚠ PGlite нэг зэрэг **нэг** холболт авдаг. API-г хүчээр зогсоосны дараа ӨС
 > «ECONNRESET» өгвөл `npm run dev:stop` хийгээд хоёуланг нь дахин асаа.
 
-## Байршуулах (Vercel)
+## Байршуулах
 
-1. Vercel төсөл — **Root Directory:** `apps/api`, **Build Command:** `cd ../.. && npm run build`
-2. Орчны хувьсагч:
-
-| Нэр | Утга |
-|---|---|
-| `DATABASE_URL` | Neon Postgres |
-| `SESSION_SECRET` | ≥32 тэмдэгт санамсаргүй утга (`openssl rand -base64 48`). Богино бол сервер хүсэлт хүлээж авахгүй. |
-| `PUBLIC_WEB_URL` | `https://ertniiov.mn` — OG зургийн абсолют хаяг |
-| `DAILY_LAUNCH_DAY` | эхний өдөр (#1), ж нь `2026-11-01` |
-| `REDIS_URL` | Upstash — хурдны хязгаар (байхгүй бол санах ойд) |
-
-3. Migration: `npm run db:migrate` үүсгэсэн SQL-ийг Neon дээр ажиллуулна (`packages/db/drizzle`).
-4. Байршуулсны дараа: `GET /api/health` → `{ ok: true }` (≥5 нийтлэгдсэн асуулт).
-5. Messenger-ийн карт шалгах: <https://developers.facebook.com/tools/debug/> дээр `…/c/КОД`.
+Алхам алхмаар: **[docs/DEPLOY.md](DEPLOY.md)** (Vercel + Neon, migration, rollback).
+Бодит утас дээрх шалгалт: **[docs/QA.md](QA.md)** (iPhone Safari, Messenger, Instagram).
 
 ## Агуулга нэмэх
 

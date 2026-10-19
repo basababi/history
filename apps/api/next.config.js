@@ -42,8 +42,13 @@ const nextConfig = {
   },
 
   async headers() {
+    // Staging/preview хайлтад гарахгүй. OG scraper (Messenger) үүнийг үл тооцдог тул карт ажиллана.
+    const noindex = process.env.NOINDEX === '1' || process.env.VERCEL_ENV === 'preview';
     return [
-      { source: '/:path*', headers: securityHeaders },
+      {
+        source: '/:path*',
+        headers: noindex ? [...securityHeaders, { key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : securityHeaders,
+      },
       // Expo-ийн хэштэй bundle — агуулга өөрчлөгдвөл нэр өөрчлөгдөнө
       {
         source: '/_expo/static/:path*',

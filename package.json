@@ -23,7 +23,8 @@
     "build:web": "npm run export:web --workspace=@nomad/mobile",
     "content:check": "npm run content --silent --workspace=@nomad/db -- check",
     "content:import": "npm run content --silent --workspace=@nomad/db -- import",
-    "content:runway": "npm run content --silent --workspace=@nomad/db -- runway"
+    "content:runway": "npm run content --silent --workspace=@nomad/db -- runway",
+    "db:deploy": "npm run deploy --workspace=@nomad/db"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.7",

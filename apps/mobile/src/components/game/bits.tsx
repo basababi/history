@@ -241,7 +241,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.borderStrong,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    // Тунгалаг бус: толгойн товч үүлэн чимэглэлийн дээр гардаг — нэвт харагдвал текст уншигдахгүй
+    backgroundColor: colors.bgElevated,
   },
   smallText: { color: colors.text, fontSize: fontSize.sm, fontWeight: '700' },
 
