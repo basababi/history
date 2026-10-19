@@ -1,7 +1,24 @@
-# Байршуулах — Vercel + Neon
+# Байршуулах — Vercel (апп) + Railway (өгөгдөл)
 
 > Хэнд: төслийг байршуулж, ажиллуулах хөгжүүлэгч.
 > Нэг удаагийн тохиргоо ~1 цаг. Дараагийн deploy бүр `git push`.
+
+## Хэн юуг хариуцах вэ
+
+| | Vercel | Railway |
+|---|---|---|
+| Юу | Вэб апп + API (Next.js), OG карт, `/c`, `/g` линк | **PostgreSQL**, Redis (заавал биш) |
+| Яагаад | CDN, `git push`-ээр deploy, preview, instant rollback | Байнга ажилладаг сервер — ӨС-д тохиромжтой |
+| Бүс | `sin1` (Сингапур, `apps/api/vercel.json`) | **Southeast Asia (Singapore)** |
+
+**Вэб ба API-г хоёр платформд хуваахгүй.** Хуваавал хоёр домэйн болж, Safari
+өөр серверээс ирсэн cookie-г 7 хоногоор хязгаарлана. Ингэвэл нэвтрэлт дахин
+эвдэрнэ. Мөн CORS, хоёр deploy, Messenger-ийн линкийн хуудас тусдаа болно.
+Railway-д апп-ын код биш, зөвхөн **өгөгдөл** байна.
+
+> 2-р шатанд «шууд өрөө» (WebSocket) хийхэд Railway-д тусдаа жижиг realtime
+> сервис нэмнэ (`live.ertniiov.mn`). Vercel-ийн функц WebSocket барьдаггүй.
+> Тэр сервис нэвтрэлтийг cookie-оор биш, үндсэн API-ийн өгсөн богино токеноор шалгана.
 
 ## Зарчим
 
@@ -13,23 +30,30 @@
 - **Migration үргэлж нэмэлт (additive)**: багана, хүснэгт нэмнэ, нэг deploy-д
   устгахгүй. Тэгвэл шинэ код болон хуучин код хоёулаа ажиллах тул rollback аюулгүй.
 
-## 1. Neon (Postgres)
+## 1. Railway (PostgreSQL)
 
-1. <https://console.neon.tech> → **New project**
-   - Region: **AWS Asia Pacific (Tokyo)**. Vercel-ийн `hnd1`-тэй ижил газар байх тул саатал бага.
-   - Postgres 16+
-2. Dashboard → **Connection string**-ээс хоёрыг хуулна:
-   - **Pooled** (`…-pooler…`) → `DATABASE_URL`. Аппын хүсэлтэд.
-   - **Direct** → `DATABASE_URL_UNPOOLED`. Migration-д зориулсан, учир нь pooler дээр DDL найдваргүй.
+1. <https://railway.com> → **New Project** → **Deploy PostgreSQL**.
+2. Postgres сервис → **Settings → Region → Southeast Asia (Singapore)**.
+   Vercel-ийн `sin1`-тэй нэг бүсэд байх тул асуулга бүр ~2 мс. Өөр бүс сонговол ~70+ мс болно.
+3. Postgres сервис → **Variables** таб → **`DATABASE_PUBLIC_URL`**-ийг хуулна
+   (`postgresql://postgres:…@…proxy.rlwy.net:12345/railway`).
 
-> Vercel → Storage → Neon интеграцаар холбовол хоёр хувьсагчийг автоматаар
-> тавина. Мөн PR бүрт тусдаа ӨС салбар үүсгэнэ (preview branching).
+> 🔴 **`DATABASE_URL` биш, `DATABASE_PUBLIC_URL`.** Railway-ийн `DATABASE_URL`
+> нь `postgres.railway.internal` бөгөөд зөвхөн Railway доторх сервисүүдэд
+> ажиллана. Vercel болон таны компьютер түүнд хүрэхгүй.
+
+4. (Заавал биш) **+ New → Database → Redis** → `REDIS_PUBLIC_URL`. Хурдны хязгаарыг
+   бүх serverless instance-д нэг дор хэрэгжүүлнэ.
+5. Postgres сервис → **Backups**: өдөр тутмын backup-ийг асаана (багцаас хамаарна).
+   Үгүй бол долоо хоногт нэг `pg_dump` хийнэ.
+
+> Үнэ: Railway туршилтын кредитийн дараа Hobby багц ~$5/сар. Үнэгүй хувилбар хэрэгтэй бол
+> Neon (Tokyo). Тэгвэл `vercel.json`-ийн бүсийг `hnd1` болгоод доорх алхмууд ижил.
 
 ## 2. ӨС бэлтгэх (компьютерээсээ, нэг удаа)
 
 ```bash
-export DATABASE_URL_UNPOOLED='postgres://…direct…?sslmode=require'
-export DATABASE_URL="$DATABASE_URL_UNPOOLED"
+export DATABASE_URL='<Railway DATABASE_PUBLIC_URL>'
 
 npm run db:deploy                          # бүх migration (дахин ажиллуулахад аюулгүй)
 npm run content:import -- --dry-run        # юу орохыг харна
@@ -37,7 +61,7 @@ npm run content:import                     # асуулт + эринүүд
 npm run content:runway                     # шинэ асуултын нөөц
 ```
 
-PowerShell дээр: `$env:DATABASE_URL_UNPOOLED='…'`.
+PowerShell дээр: `$env:DATABASE_URL='…'`.
 
 ## 3. Vercel
 
@@ -57,13 +81,12 @@ PowerShell дээр: `$env:DATABASE_URL_UNPOOLED='…'`.
 
 | Нэр | Утга | Тайлбар |
 |---|---|---|
-| `DATABASE_URL` | Neon pooled | |
-| `DATABASE_URL_UNPOOLED` | Neon direct | migration |
+| `DATABASE_URL` | Railway **`DATABASE_PUBLIC_URL`** | |
 | `SESSION_SECRET` | `openssl rand -base64 48` | **≥32 тэмдэгт.** Орчин бүрт **өөр** утга. Богино бол сервер хүсэлт хүлээж авахгүй. |
 | `NOINDEX` | `1` | нийтэд нээх хүртэл |
 | `PUBLIC_WEB_URL` | (хоосон) | домэйн холбосны дараа `https://…` |
 | `DAILY_LAUNCH_DAY` | `2026-11-01` | «#1» болох өдөр |
-| `REDIS_URL` | Upstash (заавал биш) | Байхгүй бол хурдны хязгаар serverless instance бүрт тусдаа, сул хамгаалалт болно. |
+| `REDIS_URL` | Railway `REDIS_PUBLIC_URL` (заавал биш) | Байхгүй бол хурдны хязгаар serverless instance бүрт тусдаа, сул хамгаалалт болно. |
 
 4. **🔴 Settings → Deployment Protection → Vercel Authentication: Disabled**
    (эсвэл «Only Preview Deployments»). Хамгаалалттай бол Facebook-ийн crawler
@@ -98,7 +121,7 @@ Migration-ыг кодоос **өмнө** ажиллуулна. Нэмэлт migr
 ## 6. Rollback
 
 - **Код:** Vercel → Deployments → өмнөх deploy → **Instant Rollback** (секунд).
-- **ӨС:** Neon → Branches → **Restore** (point-in-time, үнэгүй багцад 24 цаг).
+- **ӨС:** Railway → Postgres → **Backups** → Restore (эсвэл `pg_dump`-ийн файлаас).
   Migration нэмэлт тул ихэнх тохиолдолд кодыг буцаахад л хангалттай.
 
 ## 7. Нийтэд нээх үед
