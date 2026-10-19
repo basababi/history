@@ -1,0 +1,19 @@
+# Бүх текст файл repo-д ба ажлын хуулбарт LF — Windows ба Linux (CI, Vercel)
+# хоорондоо ялгаагүй байна. Хоёртын файлыг хэзээ ч хөрвүүлэхгүй.
+* text=auto eol=lf
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.glb  binary
+*.ttf  binary
+*.otf  binary
+*.woff binary
+*.woff2 binary
+*.ico  binary
+*.tar.gz binary
+
+# Үүсгэгдсэн файл — diff-д нуух
+package-lock.json                 linguist-generated=true -diff
+packages/db/drizzle/meta/*.json   linguist-generated=true
