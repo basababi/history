@@ -28,7 +28,7 @@ import { GER_ITEM_SEED } from './gerItems';
 import { STORY_SEED } from './stories';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- драйвер төрлөөс хараат бус */
-type AnyDb = PgDatabase<any, any, any>;
+export type AnyDb = PgDatabase<any, any, any>;
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface SeedResult {
@@ -42,8 +42,8 @@ export interface SeedResult {
   skippedKnowledge: string[];
 }
 
-export async function seedAll(db: AnyDb): Promise<SeedResult> {
-  // ─── Эринүүд ───
+/** Эринүүдийг нэрээр нь олж, байхгүйг нэмнэ — seed ба агуулгын импорт хуваалцана */
+export async function ensureEras(db: AnyDb): Promise<Map<EraKey, number>> {
   const eraIds = new Map<EraKey, number>();
   for (const era of ERA_SEED) {
     const existing = await db
@@ -68,6 +68,12 @@ export async function seedAll(db: AnyDb): Promise<SeedResult> {
       .returning({ id: eras.id });
     if (row) eraIds.set(era.key, row.id);
   }
+  return eraIds;
+}
+
+export async function seedAll(db: AnyDb): Promise<SeedResult> {
+  // ─── Эринүүд ───
+  const eraIds = await ensureEras(db);
 
   // ─── Баатрууд ───
   const heroIds = new Map<string, number>();

@@ -12,7 +12,8 @@
     "test": "vitest run",
     "dev": "tsx src/devServer.ts",
     "studio": "drizzle-kit studio",
-    "reset": "tsx src/reset.ts"
+    "reset": "tsx src/reset.ts",
+    "content": "tsx src/content/cli.ts"
   },
   "dependencies": {
     "@nomad/core": "*",

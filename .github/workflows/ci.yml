@@ -57,8 +57,8 @@ jobs:
         env:
           SESSION_SECRET: ci-build-only
 
-      - name: Агуулгын нөөц
-        run: npm run content:check --if-present
+      - name: Агуулгын хүснэгт (content/questions.csv)
+        run: npm run content:check
 
       # Вэб бол одоогийн бүтээгдэхүүн, апп нь 2-р шат. Нийтлэг код натив
       # bundle-ийг эвдээгүйг шалгана.
