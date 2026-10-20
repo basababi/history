@@ -1,16 +1,19 @@
 /**
  * Сесс эхлүүлэх — бүртгүүлэхгүйгээр шууд тоглох
  *
- *   токен бий         → шууд бэлэн
- *   сэргээх код бий   → түүгээр дахин нэвтэрнэ (токен алдагдсан)
- *   юу ч байхгүй      → сервер чимээгүй зочны бүртгэл үүсгэнэ
+ *   апп + токен бий  → шууд бэлэн (сүлжээгүй ч)
+ *   бусад            → `POST /api/auth/session` НЭГ дуудлага; сервер
+ *                      cookie → сэргээх код → шинэ зочин дарааллаар шийднэ
  *
- * Мөн токен хүчингүй болоход API клиент энэ hook-ийн өгсөн функцээр
- * ЧИМЭЭГҮЙ шинэчилнэ — хэрэглэгч алдаа харахгүй.
+ * Вэб дээр токен JS-д хадгалагдахгүй — cookie. Safari localStorage-ийг
+ * цэвэрлэсэн ч cookie үлдэх тул хэрэглэгч ижил бүртгэлээрээ орно.
+ *
+ * Session хүчингүй болоход API клиент энэ hook-ийн өгсөн функцээр
+ * ЧИМЭЭГҮЙ сэргээнэ — хэрэглэгч алдаа харахгүй.
  */
 import { useEffect, useRef, useState } from 'react';
-import { ApiError, configureApi, setAuthRefresher } from '@/api/client';
-import { createGuest, restoreSession } from '@/api/game';
+import { ApiError, COOKIE_AUTH, configureApi, setAuthRefresher } from '@/api/client';
+import { restoreSession, startSession } from '@/api/game';
 import { setHapticsEnabled } from '@/feedback';
 import { useSession } from '@/store/session';
 
@@ -20,17 +23,22 @@ export interface SessionStatus {
   retry: () => void;
 }
 
-/** Сэргээх кодоор шинэ токен — кодгүй бол null (шинэ зочин үүсгэхгүй) */
-async function refreshToken(): Promise<string | null> {
+/**
+ * Сэргээх кодоор дахин нэвтрэх. Кодгүй бол false — дэлгэцийн дунд шинэ
+ * зочин үүсгэж хэрэглэгчийг өөр бүртгэл рүү чимээгүй шилжүүлэхгүй.
+ */
+async function refreshSession(): Promise<boolean> {
   const { recoveryCode, setToken } = useSession.getState();
-  if (!recoveryCode) return null;
+  if (!recoveryCode) return false;
   try {
     const res = await restoreSession(recoveryCode);
-    setToken(res.token);
-    configureApi({ token: res.token });
-    return res.token;
+    if (!COOKIE_AUTH) {
+      setToken(res.token);
+      configureApi({ token: res.token });
+    }
+    return true;
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -49,14 +57,14 @@ export function useGuestSession(): SessionStatus {
   }, [haptics]);
 
   useEffect(() => {
-    setAuthRefresher(refreshToken);
+    setAuthRefresher(refreshSession);
     return () => setAuthRefresher(null);
   }, []);
 
   useEffect(() => {
-    if (!hydrated || running.current) return;
+    if (!hydrated || running.current || ready) return;
 
-    if (token) {
+    if (!COOKIE_AUTH && token) {
       configureApi({ token });
       setReady(true);
       return;
@@ -68,21 +76,9 @@ export function useGuestSession(): SessionStatus {
     void (async () => {
       try {
         const { recoveryCode, setSession } = useSession.getState();
-        if (recoveryCode) {
-          try {
-            const restored = await restoreSession(recoveryCode);
-            configureApi({ token: restored.token });
-            setSession({ token: restored.token, userId: restored.userId });
-            setReady(true);
-            return;
-          } catch (err) {
-            // Код хүчингүй (ӨС шинэчлэгдсэн г.м.) — шинэ зочин үүсгэнэ
-            if (!(err instanceof ApiError) || err.status !== 404) throw err;
-          }
-        }
-        const created = await createGuest();
-        configureApi({ token: created.token });
-        setSession({ token: created.token, userId: created.userId, recoveryCode: created.recoveryCode });
+        const res = await startSession(recoveryCode);
+        configureApi({ token: COOKIE_AUTH ? null : res.token });
+        setSession({ token: res.token, userId: res.userId, recoveryCode: res.recoveryCode });
         setReady(true);
       } catch (err) {
         setError(
@@ -94,7 +90,7 @@ export function useGuestSession(): SessionStatus {
         running.current = false;
       }
     })();
-  }, [hydrated, token, attempt]);
+  }, [hydrated, token, attempt, ready]);
 
   return { ready, error, retry: () => setAttempt((n) => n + 1) };
 }

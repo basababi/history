@@ -11,6 +11,12 @@ import { ApiErrorSchema } from '@nomad/contracts';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
+/**
+ * Вэб нь HttpOnly session cookie-оор нэвтэрнэ — токен JavaScript-д ХЭЗЭЭ Ч
+ * хадгалагдахгүй (XSS, Safari-ийн 7 хоногийн цэвэрлэгээ). Апп Bearer токен.
+ */
+export const COOKIE_AUTH = Platform.OS === 'web';
+
 export class ApiError extends Error {
   constructor(
     readonly code: string,
@@ -189,19 +195,20 @@ export function getApiBaseUrl(): string {
 }
 
 /**
- * Токен хүчингүй болоход (хугацаа дуусах, сервер нууц солих) шинэ токен
- * авах функц — сэргээх кодоор ЧИМЭЭГҮЙ дахин нэвтэрнэ. Дэлгэцүүд энэ
- * талаар юу ч мэдэх шаардлагагүй.
+ * Session хүчингүй болоход (хугацаа дуусах, сервер нууц солих) дахин
+ * нэвтрэх функц — сэргээх кодоор ЧИМЭЭГҮЙ. Амжилттай бол `true`; шинэ
+ * токеныг (апп) эсвэл cookie-г (вэб) функц өөрөө тохируулна. Дэлгэцүүд
+ * энэ талаар юу ч мэдэх шаардлагагүй.
  */
-let refreshAuth: (() => Promise<string | null>) | null = null;
-let refreshing: Promise<string | null> | null = null;
+let refreshAuth: (() => Promise<boolean>) | null = null;
+let refreshing: Promise<boolean> | null = null;
 
-export function setAuthRefresher(fn: (() => Promise<string | null>) | null): void {
+export function setAuthRefresher(fn: (() => Promise<boolean>) | null): void {
   refreshAuth = fn;
 }
 
-async function refreshOnce(): Promise<string | null> {
-  if (!refreshAuth) return null;
+async function refreshOnce(): Promise<boolean> {
+  if (!refreshAuth) return false;
   // Зэрэг ирсэн олон 401 нэг л удаа дахин нэвтэрнэ
   refreshing ??= refreshAuth().finally(() => {
     refreshing = null;
@@ -241,6 +248,8 @@ export async function apiRequest<T>(
         ...(authToken ? { authorization: `Bearer ${authToken}` } : {}),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
+      // Вэбийн session cookie зөвхөн өөрийн домэйн рүү явна
+      credentials: 'same-origin',
       signal: options.signal ?? controller.signal,
     });
   } catch (err) {
@@ -294,9 +303,7 @@ export async function apiRequest<T>(
       parsed.success &&
       parsed.data.error.code === 'UNAUTHORIZED'
     ) {
-      const fresh = await refreshOnce();
-      if (fresh) {
-        authToken = fresh;
+      if (await refreshOnce()) {
         return apiRequest(path, schema, { ...options, retried: true });
       }
     }

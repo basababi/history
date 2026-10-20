@@ -40,6 +40,33 @@ export const RestoreAuthResponseSchema = z.object({
 });
 export type RestoreAuthResponse = z.infer<typeof RestoreAuthResponseSchema>;
 
+/**
+ * POST /api/auth/session — вэбийн нэг дуудлагат эхлэл.
+ *   cookie хүчинтэй → тэр хэрэглэгч · код таарвал → сэргээнэ · эс бөгөөс → шинэ зочин
+ */
+export const SessionRequestSchema = z.object({
+  recoveryCode: z.string().min(10).max(64).optional(),
+});
+export type SessionRequest = z.infer<typeof SessionRequestSchema>;
+
+export const SessionResponseSchema = z.object({
+  token: z.string(),
+  userId: int(),
+  created: z.boolean(),
+  /**
+   * Клиентийн ХАДГАЛАХ ёстой сэргээх код: шинэ зочин бол шинэ код, илгээсэн
+   * код энэ хэрэглэгчийнх бол түүнийг, бусад үед null (клиент мартана).
+   */
+  recoveryCode: z.string().nullable(),
+});
+export type SessionResponse = z.infer<typeof SessionResponseSchema>;
+
+/** POST /api/me/recovery — шинэ сэргээх код (хуучин нь хүчингүй болно) */
+export const RecoveryCodeResponseSchema = z.object({
+  recoveryCode: z.string(),
+});
+export type RecoveryCodeResponse = z.infer<typeof RecoveryCodeResponseSchema>;
+
 // ─── Цол ба профайл ───
 
 export const TitleSchema = z.object({
