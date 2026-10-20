@@ -113,6 +113,13 @@ export const questions = pgTable(
     sourceRef: text('source_ref').notNull(),
     status: varchar('status', { length: 16 }).notNull().default('draft'), // draft|reviewed|published
     isGoldenStandard: boolean('is_golden_standard').notNull().default(false), // Бүлэг 6.3
+    /**
+     * Агуулгын хүснэгтийн тогтвортой түлхүүр (`Q-0001`) — `content/questions.csv`.
+     * CSV-г хэдэн ч удаа импортолсон давхардахгүй, засвар нь ижил мөрийг шинэчилнэ.
+     */
+    contentKey: varchar('content_key', { length: 32 }),
+    /** Нийтлэхийг зөвшөөрсөн түүхч — хариуцлага, аудит */
+    reviewedBy: varchar('reviewed_by', { length: 120 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
     (t) => ({
@@ -120,6 +127,7 @@ export const questions = pgTable(
     index('questions_quiz_idx')
       .on(t.eraId, t.difficulty, t.status)
       .where(sql`status = 'published'`),
+    questionsContentKeyUq: uniqueIndex('questions_content_key_uq').on(t.contentKey),
   })
 );
 

@@ -11,6 +11,7 @@ import {
   knowledgeChunks,
   questions,
 } from '../src/schema';
+import { ERA_SEED } from '../src/seed/eras';
 import { seedAll, type SeedResult } from '../src/seed/run';
 import { createTestDb, type TestDb } from './helpers/testDb';
 
@@ -31,7 +32,7 @@ afterAll(async () => {
 
 describe('Seed бодит ӨС дээр ажиллана', () => {
   it('бүх төрлийн контент орсон', () => {
-    expect(first.eras).toBe(3);
+    expect(first.eras).toBe(ERA_SEED.length);
     expect(first.heroes).toBe(7);
     expect(first.artifacts).toBe(10);
     expect(first.questions).toBe(21);
@@ -110,7 +111,7 @@ describe('🔴 Идемпотент байдал — дахин ажиллуул
   });
 
   it('ӨС дэх мөрийн тоо хэвээр', async () => {
-    expect(await db.select().from(eras)).toHaveLength(3);
+    expect(await db.select().from(eras)).toHaveLength(ERA_SEED.length);
     expect(await db.select().from(heroes)).toHaveLength(7);
     expect(await db.select().from(artifacts)).toHaveLength(10);
     expect(await db.select().from(questions)).toHaveLength(21);
