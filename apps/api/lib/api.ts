@@ -3,7 +3,15 @@
  */
 import { NextResponse } from 'next/server';
 import type { ZodSchema } from 'zod';
-import { getAuthedUser, type AuthedUser } from './auth';
+import {
+  getAuthedUser,
+  SESSION_RENEW_BELOW_SEC,
+  SESSION_TTL_SEC,
+  signJwt,
+  verifyJwtClaims,
+  type AuthedUser,
+} from './auth';
+import { readSessionCookie, sessionCookieHeader } from './cookies';
 
 export function apiError(
   code: string,
@@ -69,13 +77,46 @@ function handleUnexpected(err: unknown): NextResponse {
   );
 }
 
+/**
+ * Нэвтрэлтийн хариу: токен биед (апп) + HttpOnly cookie (вэб).
+ * Вэб клиент биеийн токеныг хадгалдаггүй — cookie л ажиллана.
+ */
+export function sessionResponse(
+  req: Request,
+  userId: number,
+  body: Record<string, unknown> = {}
+): NextResponse {
+  const token = signJwt(userId, SESSION_TTL_SEC);
+  const res = NextResponse.json({ ...body, token, userId }, { headers: { 'Cache-Control': 'no-store' } });
+  res.headers.append('Set-Cookie', sessionCookieHeader(req, token, SESSION_TTL_SEC));
+  return res;
+}
+
+/**
+ * Гулсах сунгалт — cookie-ийн үлдсэн хугацаа богиноссон бол шинийг тавина.
+ * Маршрут өөрөө cookie тавьсан (нэвтрэх) эсвэл апп Bearer ашигласан бол хөндөхгүй.
+ */
+function renewSessionCookie(req: Request, res: Response): Response {
+  if (req.headers.has('authorization') || res.headers.has('set-cookie')) return res;
+  const token = readSessionCookie(req);
+  if (!token) return res;
+  const claims = verifyJwtClaims(token);
+  if (!claims || claims.exp * 1000 - Date.now() > SESSION_RENEW_BELOW_SEC * 1000) return res;
+  try {
+    res.headers.append('Set-Cookie', sessionCookieHeader(req, signJwt(claims.sub, SESSION_TTL_SEC), SESSION_TTL_SEC));
+  } catch {
+    // Зарим хариуны (Response.redirect) толгой өөрчлөгдөхгүй — дараагийн хүсэлтэд сунгана
+  }
+  return res;
+}
+
 /** Route handler-ийг try/catch-аар боож, нэгдсэн алдаа буцаана */
 export function route(
   handler: (req: Request) => Promise<Response>
 ): (req: Request) => Promise<Response> {
   return async (req) => {
     try {
-      return await handler(req);
+      return renewSessionCookie(req, await handler(req));
     } catch (err) {
       return handleUnexpected(err);
     }
@@ -98,7 +139,7 @@ export function routeWith<P extends Record<string, string>>(
 ): (req: Request, ctx: { params: Promise<P> }) => Promise<Response> {
   return async (req, ctx) => {
     try {
-      return await handler(req, await ctx.params);
+      return renewSessionCookie(req, await handler(req, await ctx.params));
     } catch (err) {
       return handleUnexpected(err);
     }

@@ -50,7 +50,11 @@ describe('401 — сэргээх кодоор чимээгүй дахин нэв
         return new Response(JSON.stringify({ ok: true }), { status: 200 });
       })
     );
-    const refresher = vi.fn(async () => 'fresh');
+    // Апп: refresher шинэ токеныг өөрөө тохируулна. Вэб: cookie — токен огт хөндөхгүй.
+    const refresher = vi.fn(async () => {
+      configureApi({ token: 'fresh' });
+      return true;
+    });
     setAuthRefresher(refresher);
 
     await expect(apiRequest('/api/me', Ok)).resolves.toEqual({ ok: true });
@@ -68,7 +72,7 @@ describe('401 — сэргээх кодоор чимээгүй дахин нэв
         })
       )
     );
-    setAuthRefresher(async () => null);
+    setAuthRefresher(async () => false);
     await expect(apiRequest('/api/me', Ok)).rejects.toMatchObject({ code: 'UNAUTHORIZED', status: 401 });
   });
 });

@@ -14,9 +14,10 @@ import {
   GroupLeaveResultSchema,
   GroupPreviewSchema,
   GroupsResponseSchema,
-  GuestAuthResponseSchema,
   MeResponseSchema,
+  RecoveryCodeResponseSchema,
   RestoreAuthResponseSchema,
+  SessionResponseSchema,
   RivalsResponseSchema,
   type ContentReportRequest,
   type DailyAnswerRequest,
@@ -27,11 +28,19 @@ import { apiRequest } from './client';
 
 // ─── Нэвтрэлт ───
 
-export const createGuest = () =>
-  apiRequest('/api/auth/guest', GuestAuthResponseSchema, { method: 'POST', body: {} });
-
 export const restoreSession = (recoveryCode: string) =>
   apiRequest('/api/auth/restore', RestoreAuthResponseSchema, { method: 'POST', body: { recoveryCode } });
+
+/** Нэг дуудлагат эхлэл: cookie → сэргээх код → шинэ зочин (сервер шийднэ) */
+export const startSession = (recoveryCode: string | null) =>
+  apiRequest('/api/auth/session', SessionResponseSchema, {
+    method: 'POST',
+    body: recoveryCode ? { recoveryCode } : {},
+  });
+
+/** Шинэ сэргээх код — хуучин нь тэр дороо хүчингүй */
+export const rotateRecoveryCode = () =>
+  apiRequest('/api/me/recovery', RecoveryCodeResponseSchema, { method: 'POST', body: {} });
 
 // ─── Профайл ───
 

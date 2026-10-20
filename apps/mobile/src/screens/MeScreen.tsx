@@ -9,8 +9,8 @@ import { Platform, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInp
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDuration, formatRecoveryCode, isValidRecoveryCode, normalizeRecoveryCode } from '@nomad/core';
-import { ApiError, configureApi } from '@/api/client';
-import { restoreSession } from '@/api/game';
+import { ApiError, COOKIE_AUTH, configureApi } from '@/api/client';
+import { restoreSession, rotateRecoveryCode } from '@/api/game';
 import { Card, ErrorState, Loading, PrimaryButton, ProgressBar, SectionTitle } from '@/components/ui';
 import { ScreenCanvas } from '@/components/ScreenCanvas';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -42,7 +42,8 @@ export default function MeScreen({ navigation }: TabScreenProps<'Me'>) {
   const recoveryCode = useSession((s) => s.recoveryCode);
   const haptics = useSession((s) => s.hapticsEnabled);
   const setHaptics = useSession((s) => s.setHapticsEnabled);
-  const switchAccount = useSession((s) => s.switchAccount);
+  const setSession = useSession((s) => s.setSession);
+  const setRecoveryCode = useSession((s) => s.setRecoveryCode);
 
   const [editing, setEditing] = useState(false);
   const [showCode, setShowCode] = useState(false);
@@ -50,7 +51,23 @@ export default function MeScreen({ navigation }: TabScreenProps<'Me'>) {
   const [restoreInput, setRestoreInput] = useState('');
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [rotating, setRotating] = useState(false);
   const [message, flash] = useFlash();
+
+  /** Хөтөч кодыг мартсан ч cookie-оор нэвтэрсэн хэвээр — шинэ код авна */
+  async function issueNewCode() {
+    setRotating(true);
+    try {
+      const res = await rotateRecoveryCode();
+      setRecoveryCode(res.recoveryCode);
+      setShowCode(true);
+      flash('Шинэ код үүслээ — одоо хуулж хадгалаарай');
+    } catch (err) {
+      flash(err instanceof ApiError ? err.message : 'Код үүсгэж чадсангүй. Дахин оролдоно уу.');
+    } finally {
+      setRotating(false);
+    }
+  }
 
   async function restore() {
     const code = normalizeRecoveryCode(restoreInput);
@@ -62,8 +79,8 @@ export default function MeScreen({ navigation }: TabScreenProps<'Me'>) {
     setRestoreError(null);
     try {
       const res = await restoreSession(code);
-      configureApi({ token: res.token });
-      switchAccount({ token: res.token, userId: res.userId, recoveryCode: code });
+      configureApi({ token: COOKIE_AUTH ? null : res.token });
+      setSession({ token: res.token, userId: res.userId, recoveryCode: code });
       qc.clear();
       setRestoreOpen(false);
       setRestoreInput('');
@@ -187,7 +204,19 @@ export default function MeScreen({ navigation }: TabScreenProps<'Me'>) {
                 </View>
               </>
             ) : (
-              <Text style={styles.small}>Энэ төхөөрөмж дээр код хадгалагдаагүй байна.</Text>
+              <>
+                <Text style={styles.small}>
+                  Энэ хөтөч таны кодыг мартжээ (Safari зарим үед цэвэрлэдэг). Бүртгэл чинь хэвээр — шинэ код аваад
+                  хадгалаарай. Хуучин код хүчингүй болно.
+                </Text>
+                <SmallButton
+                  label={rotating ? 'Үүсгэж байна…' : 'Шинэ код авах'}
+                  icon="key"
+                  onPress={() => void issueNewCode()}
+                  disabled={rotating}
+                  style={styles.newCode}
+                />
+              </>
             )}
 
             {!restoreOpen ? (
@@ -275,6 +304,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSunken,
   },
   restore: { gap: spacing.sm, marginTop: spacing.md },
+  newCode: { alignSelf: 'flex-start', marginTop: spacing.sm },
   input: {
     borderWidth: 1.5,
     borderColor: colors.borderStrong,
