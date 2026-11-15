@@ -30,14 +30,14 @@
     "content:import:prod": "npm run content --silent --workspace=@nomad/db -- import --from-railway"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.7",
-    "@electric-sql/pglite-socket": "^0.2.10",
-    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@electric-sql/pglite": "^0.5.16",
+    "@electric-sql/pglite-socket": "^0.2.19",
+    "@typescript-eslint/eslint-plugin": "^8.72.2",
     "@typescript-eslint/parser": "^8.71.2",
     "dotenv": "^17.4.2",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "turbo": "^2.0.6",
+    "turbo": "^2.11.11",
     "typescript": "~6.0.3"
   },
   "packageManager": "npm@10.9.2",
