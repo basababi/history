@@ -20,7 +20,7 @@
     "@nomad/core": "*",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4.4"
+    "postgres": "^4.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
