@@ -47,14 +47,14 @@
     "react-native-svg": "15.15.4",
     "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.2",
-    "three": "0.162.0",
+    "three": "0.187.0",
     "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@types/react": "^19.2.18",
-    "@types/three": "0.162.0",
+    "@types/three": "0.187.0",
     "dotenv": "^16.4.5",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"
