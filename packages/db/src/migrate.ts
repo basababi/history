@@ -17,7 +17,8 @@ import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import { loadEnv, requireDatabaseUrl } from './env';
+import { loadEnv, postgresConnectOptions, requireDatabaseUrl } from './env';
+import { railwayPublicUrl } from './railwayPublicUrl';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const MIGRATIONS_FOLDER = path.resolve(here, '../drizzle');
@@ -33,16 +34,13 @@ async function appliedCount(db: ReturnType<typeof drizzle>): Promise<number> {
 
 async function main() {
   loadEnv();
-  const url = process.env.DATABASE_URL_UNPOOLED || requireDatabaseUrl();
-  const host = (() => {
-    try {
-      return new URL(url).host;
-    } catch {
-      return '(буруу URL)';
-    }
-  })();
+  const fromRailway = process.argv.includes('--from-railway');
+  const url = fromRailway
+    ? railwayPublicUrl()
+    : process.env.DATABASE_URL_UNPOOLED || requireDatabaseUrl();
+  const host = new URL(url).host;
 
-  const client = postgres(url, { max: 1, onnotice: () => {} });
+  const client = postgres(url, { ...postgresConnectOptions(url), onnotice: () => {} });
   const db = drizzle(client);
   try {
     const before = await appliedCount(db);

@@ -9,6 +9,7 @@
  */
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { assertPostgresUrl, postgresConnectOptions } from '@nomad/db';
 
 /** Холболтын мөр байгаа эсэх — route дотор урьдчилж шалгаж болно */
 export function isDbConfigured(): boolean {
@@ -23,18 +24,20 @@ const globalForDb = globalThis as unknown as {
 function connect(): PostgresJsDatabase {
   if (globalForDb.__nomadDb) return globalForDb.__nomadDb;
 
-  const url = process.env.DATABASE_URL;
-  if (!url) {
+  const configuredUrl = process.env.DATABASE_URL;
+  if (!configuredUrl) {
     throw new Error(
       'DATABASE_URL тохируулагдаагүй байна. apps/api/.env файлаа шалгана уу.'
     );
   }
+  const url = assertPostgresUrl(configuredUrl);
 
   // `max: 1` — serverless instance бүр НЭГ холболт. Railway-д pooler байхгүй тул
   //   олон instance зэрэг асахад Postgres-ийн холболтын хязгаар (100) дүүрэхээс
   //   сэргийлнэ. `idle_timeout` — сул instance холболтоо 20 секундэд суллана.
   const sql =
-    globalForDb.__nomadSql ?? postgres(url, { max: 1, idle_timeout: 20 });
+    globalForDb.__nomadSql ??
+    postgres(url, { ...postgresConnectOptions(url), idle_timeout: 20 });
 
   const instance = drizzle(sql);
 

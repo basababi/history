@@ -24,7 +24,10 @@
     "content:check": "npm run content --silent --workspace=@nomad/db -- check",
     "content:import": "npm run content --silent --workspace=@nomad/db -- import",
     "content:runway": "npm run content --silent --workspace=@nomad/db -- runway",
-    "db:deploy": "npm run deploy --workspace=@nomad/db"
+    "content:runway:prod": "npm run content --silent --workspace=@nomad/db -- runway --from-railway",
+    "db:deploy": "npm run deploy --workspace=@nomad/db",
+    "db:deploy:prod": "npm run deploy:prod --workspace=@nomad/db",
+    "content:import:prod": "npm run content --silent --workspace=@nomad/db -- import --from-railway"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.7",

@@ -21,7 +21,7 @@ export function loadEnv(): void {
   }
 }
 
-/** DATABASE_URL-ыг шаардана; байхгүй бол тодорхой заавартай алдаа */
+/** DATABASE_URL-ыг шаардана; байхгүй эсвэл буруу бол тодорхой заавартай алдаа */
 export function requireDatabaseUrl(): string {
   loadEnv();
   const url = process.env.DATABASE_URL;
@@ -30,8 +30,50 @@ export function requireDatabaseUrl(): string {
       'DATABASE_URL тохируулагдаагүй байна.\n\n' +
         '  1) cp .env.example .env\n' +
         '  2) .env дотор DATABASE_URL-аа бичнэ үү\n\n' +
-        'Локал ӨС-гүй бол:  npm run db:dev   (суулгах шаардлагагүй Postgres)'
+        'Локал ӨС-гүй бол:  npm run db:dev   (суулгах шаардлагагүй Postgres)\n' +
+        'Railway production:  npm run db:deploy:prod'
     );
   }
-  return url;
+  return assertPostgresUrl(url);
+}
+
+/** postgres.js-д өгөх URL — буруу мөрөнд `Invalid URL` биш, заавар өгнө */
+export function assertPostgresUrl(url: string): string {
+  const trimmed = url.trim();
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error(
+      'DATABASE_URL буруу (Invalid URL). Clipboard дээр бүтэн postgresql://… холбоос байх ёстой.\n' +
+        'Railway → Postgres → Variables → DATABASE_PUBLIC_URL-ийг хуулаад:\n' +
+        '  npm run db:deploy:prod'
+    );
+  }
+  if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') {
+    throw new Error(
+      `DATABASE_URL postgres:// эсвэл postgresql://-ээр эхлэх ёстой (одоо: ${parsed.protocol}).`
+    );
+  }
+  if (!parsed.hostname) {
+    throw new Error('DATABASE_URL-д PostgreSQL серверийн hostname алга.');
+  }
+  return trimmed;
+}
+
+export function isLocalDatabaseHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === '127.0.0.1' || host === 'localhost';
+  } catch {
+    return false;
+  }
+}
+
+/** Алсын Postgres (Railway public proxy) SSL шаарддаг; локал PGlite/Postgres үгүй */
+export function postgresConnectOptions(url: string): { max: 1; ssl: false | 'require' } {
+  return {
+    max: 1,
+    ssl: isLocalDatabaseHost(url) ? false : 'require',
+  };
 }

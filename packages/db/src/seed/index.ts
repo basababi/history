@@ -7,12 +7,12 @@
  */
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { requireDatabaseUrl } from '../env';
+import { postgresConnectOptions, requireDatabaseUrl } from '../env';
 import { seedAll } from './run';
 
 async function main() {
   const url = requireDatabaseUrl();
-  const client = postgres(url, { max: 1 });
+  const client = postgres(url, postgresConnectOptions(url));
   const db = drizzle(client);
 
   console.log('Seed эхэлж байна…');

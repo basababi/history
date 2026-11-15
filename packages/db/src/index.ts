@@ -5,4 +5,5 @@
  * гарц. Ингэснээр дотоод бүтэц өөрчлөгдөхөд хэрэглэгчид эвдрэхгүй.
  */
 export * from './schema';
+export { assertPostgresUrl, postgresConnectOptions } from './env';
 export { seedAll, type SeedResult } from './seed/run';

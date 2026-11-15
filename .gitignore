@@ -24,6 +24,7 @@ apps/api/public/
 
 # Байршуулалт, лог, OS/IDE-ийн хог
 .vercel/
+.railway/
 *.log
 npm-debug.log*
 .DS_Store

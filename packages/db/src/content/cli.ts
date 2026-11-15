@@ -15,7 +15,8 @@ import { fileURLToPath } from 'node:url';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eras } from '../schema';
-import { requireDatabaseUrl } from '../env';
+import { postgresConnectOptions, requireDatabaseUrl } from '../env';
+import { railwayPublicUrl } from '../railwayPublicUrl';
 import { contentRunway, importQuestions } from './importer';
 import { DAILY_NEED, freshDays, readQuestionCsv, type ContentIssue, type ContentReadResult } from './questions';
 
@@ -68,8 +69,14 @@ function check(file: string): ContentReadResult {
   return result;
 }
 
+function contentDatabaseUrl(): string {
+  if (process.argv.includes('--from-railway')) return railwayPublicUrl();
+  return requireDatabaseUrl();
+}
+
 async function withDb<T>(fn: (db: ReturnType<typeof drizzle>) => Promise<T>): Promise<T> {
-  const client = postgres(requireDatabaseUrl(), { max: 1 });
+  const url = contentDatabaseUrl();
+  const client = postgres(url, postgresConnectOptions(url));
   try {
     return await fn(drizzle(client));
   } finally {

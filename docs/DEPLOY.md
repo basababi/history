@@ -50,22 +50,24 @@ Railway-д апп-ын код биш, зөвхөн **өгөгдөл** байна
 > Үнэ: Railway туршилтын кредитийн дараа Hobby багц ~$5/сар. Үнэгүй хувилбар хэрэгтэй бол
 > Neon (Tokyo). Тэгвэл `vercel.json`-ийн бүсийг `hnd1` болгоод доорх алхмууд ижил.
 
-## 2. ӨС бэлтгэх (компьютерээсээ, нэг удаа)
+## 2. ӨС бэлтгэх (локал хөгжүүлэлтийн компьютероос, нэг удаа)
+
+Production database-д PowerShell-д URL хуулж оруулах шаардлагагүй. Repo-ийн үндсэн хавтсанд Railway CLI-ээр нэг удаа холбоно:
 
 ```bash
-export DATABASE_URL='<Railway DATABASE_PUBLIC_URL>'
-
-npm run db:deploy                          # бүх migration (дахин ажиллуулахад аюулгүй)
-npm run content:import -- --dry-run        # юу орохыг харна
-npm run content:import                     # асуулт + эринүүд
-npm run content:runway                     # шинэ асуултын нөөц
+railway login
+railway link --project <PROJECT_ID> --environment <ENVIRONMENT_ID> --service <POSTGRES_SERVICE_ID>
+npm run db:deploy:prod
+npm run content:import:prod -- --dry-run
+npm run content:import:prod
+npm run content:runway:prod
 ```
 
-PowerShell дээр: `$env:DATABASE_URL='…'`.
+Эдгээр production команд Railway CLI-ээс `DATABASE_PUBLIC_URL`-г авч, SSL-ээр холбогдоно. URL/нууц үгийг терминалд эсвэл чатад paste хийхгүй. `npm run db:deploy:prod` нь зөвхөн шинэ migration-уудыг ажиллуулна; import-ийн `--dry-run`-ийг шалгасны дараа бодит import хийнэ.
 
 ## 3. Vercel
 
-1. <https://vercel.com/new> → GitHub → **basababi/nomad-backend**. Хувийн repo тул
+1. <https://vercel.com/new> → GitHub → **basababi/history**. Хувийн repo тул
    Vercel-ийн GitHub апп-д тухайн repo-д хандах эрх өгнө.
 2. Тохиргоо:
 
@@ -85,7 +87,7 @@ PowerShell дээр: `$env:DATABASE_URL='…'`.
 | `SESSION_SECRET` | `openssl rand -base64 48` | **≥32 тэмдэгт.** Орчин бүрт **өөр** утга. Богино бол сервер хүсэлт хүлээж авахгүй. |
 | `NOINDEX` | `1` | нийтэд нээх хүртэл |
 | `PUBLIC_WEB_URL` | (хоосон) | домэйн холбосны дараа `https://…` |
-| `DAILY_LAUNCH_DAY` | `2026-11-01` | «#1» болох өдөр |
+| `DAILY_LAUNCH_DAY` | `YYYY-MM-DD` | «#1» болох өдөр |
 | `REDIS_URL` | Railway `REDIS_PUBLIC_URL` (заавал биш) | Байхгүй бол хурдны хязгаар serverless instance бүрт тусдаа, сул хамгаалалт болно. |
 
 4. **🔴 Settings → Deployment Protection → Vercel Authentication: Disabled**

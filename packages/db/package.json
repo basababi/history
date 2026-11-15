@@ -14,7 +14,8 @@
     "studio": "drizzle-kit studio",
     "reset": "tsx src/reset.ts",
     "content": "tsx src/content/cli.ts",
-    "deploy": "tsx src/migrate.ts"
+    "deploy": "tsx src/migrate.ts",
+    "deploy:prod": "tsx src/migrate.ts --from-railway"
   },
   "dependencies": {
     "@nomad/core": "*",
